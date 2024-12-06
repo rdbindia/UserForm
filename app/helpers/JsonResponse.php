@@ -4,10 +4,11 @@ namespace helpers;
 
 class JsonResponse
 {
-    public function __construct(array $data, int $status = 200)
+    public function __construct(
+        public readonly array $data,
+        public readonly int $status = 200
+    )
     {
-        $this->data = $data;
-        $this->status = $status;
     }
 
     public static function response(array $data, int $status = 200): self

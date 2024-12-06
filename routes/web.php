@@ -1,7 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../config/config.php';
-
+use models\User as UserModel;
 
 $routes = [
     '' => ['controller' => 'null', 'method' => 'index'],
@@ -26,9 +25,10 @@ elseif (array_key_exists($uri, $routes)) {
     $controllerClass = "classes\\$controllerName";
     $methodName = $route['method'];
 
-
-
-    $controller = new $controllerClass();
+    require_once __DIR__ . "/../app/models/User.php";
+    $pdo = require __DIR__ . '/../config/config.php';
+    $userModel = new UserModel($pdo);
+    $controller = new $controllerClass($userModel);
 
     if (!method_exists($controller, $methodName)) {
         echo "Method $methodName does not exist in $controllerName!";

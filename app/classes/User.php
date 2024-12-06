@@ -1,40 +1,66 @@
 <?php
 
 namespace classes;
+
 require_once __DIR__ . '/../models/User.php';
+
+use Exception;
 use models\User as UserModel;
 
 class User
 {
-    private UserModel $model;
-
-    public function __construct() {
-        $this->model = new UserModel();
+    public function __construct(public readonly UserModel $userModel)
+    {
     }
 
-    public function create($data) {
-        var_dump($data);
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->model->createUser($data);
-            header('Location: /');
-        } else {
-            require __DIR__ . '/../views/user/form.php';
+    /**
+     * @throws Exception
+     */
+    public function create(array $data): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->renderForm();
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $response = $this->userModel->createUser($data);
+            echo $response->toJson();
         }
     }
 
-    public function edit($data) {
-        $user = $this->model->getUserById($data['id']);
-        require __DIR__ . '/../views/user/form.php';
+    /**
+     * @throws Exception
+     */
+    public function update(array $data): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $userId = $data['id'] ?? null;
+            if (!$userId) {
+                http_response_code(400);
+                echo "User ID is required for updating.";
+                return;
+            }
+
+            $userResponse = $this->userModel->getUserById((int)$userId);
+            $userData = json_decode($userResponse->toJson(), true)['data'] ?? [];
+            $this->renderForm($userData); // Render form with pre-filled data
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $data['id'] ?? null;
+            if (!$userId) {
+                http_response_code(400);
+                echo "User ID is required for updating.";
+                return;
+            }
+
+            $response = $this->userModel->updateUser((int)$userId, $data);
+            echo $response->toJson();
+        }
     }
 
-    public function update($data) {
-        $this->model->updateUser($data['id'], $data);
-        header('Location: /');
-    }
+    private function renderForm(?array $userData = null): void
+    {
+        $isUpdate = $userData !== null;
+        $actionUrl = $isUpdate ? "/update?id={$userData['id']}" : "/create";
 
-    public function delete($data) {
-        $this->model->deleteUser($data['id']);
-        header('Location: /');
+        require __DIR__ . '/../views/UserForm.php';
     }
 }

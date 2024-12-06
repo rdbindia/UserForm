@@ -2,6 +2,8 @@
 
 namespace models;
 
+require_once __DIR__ . '/../helpers/JsonResponse.php';
+
 use Exception;
 use helpers\JsonResponse;
 use PDO;
@@ -63,7 +65,7 @@ class User
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$result) {
-                return JsonResponse::json(['success' => false, 'message' => 'User not found.']);
+                return JsonResponse::response(['success' => false, 'message' => 'User not found.']);
             }
 
             $this->setProperties($result);
@@ -114,12 +116,12 @@ class User
             $stmt->execute([':id' => $id]);
 
             if ($stmt->rowCount() === 0) {
-                return JsonResponse::create(['success' => false,'message' => 'User not found.']);
+                return JsonResponse::response(['success' => false,'message' => 'User not found.']);
             }
 
-            return JsonResponse::create(['success' => true,'message' => 'User deleted successfully.']);
+            return JsonResponse::response(['success' => true,'message' => 'User deleted successfully.']);
         } catch (Exception $e) {
-            return JsonResponse::create(['success' => false,'error' => $e->getMessage()]);
+            return JsonResponse::response(['success' => false,'error' => $e->getMessage()]);
         }
     }
 

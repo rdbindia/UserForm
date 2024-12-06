@@ -1,11 +1,8 @@
 <?php
-
-// Use the globally available $pdo
 $pdo = $GLOBALS['pdo'] ?? null;
-var_dump($GLOBALS['pdo']);
+
 if (!$pdo instanceof PDO) {
     echo "Error: PDO object not initialized in create_users_table.php\n";
-    var_dump($pdo);
     exit(1);
 }
 
@@ -19,7 +16,7 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         email VARCHAR(50) UNIQUE NOT NULL,
-        mobile_number INT NOT NULL,
+        mobile_number BIGINT NOT NULL,
         address VARCHAR(255) DEFAULT NULL,
         city VARCHAR(128) DEFAULT NULL,
         state  VARCHAR(2)   DEFAULT NULL,
