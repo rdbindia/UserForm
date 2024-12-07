@@ -21,15 +21,17 @@ class UserService implements UserServiceInterface
      */
     public function create(array $data): JsonResponse
     {
-        $this->validate($data);
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $success = $this->userModel->createUser($data);
-
-        if ($success) {
-            return JsonResponse::response(['success' => true, 'message' => 'User created successfully.']);
+        try {
+            $this->validate($data);
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $success = $this->userModel->createUser($data);
+            if ($success) {
+                return JsonResponse::response(['success' => true, 'message' => 'User created successfully.']);
+            }
+            return JsonResponse::response(['success' => false, 'error' => 'Failed to create user.'], 500);
+        } catch (Exception $e) {
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 400);
         }
-
-        return JsonResponse::response(['success' => false, 'error' => 'Failed to create user.'], 500);
     }
 
     public function update(int $id, array $data): JsonResponse

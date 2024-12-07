@@ -98,3 +98,4 @@ MySQL as the database.
   1. Add user authentication and roles.
   2. Implement sorting and filtering on the user list table.
   3. Enhance testing coverage.
+  4. Add better error messages.
