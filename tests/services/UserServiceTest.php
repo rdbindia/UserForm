@@ -2,23 +2,40 @@
 
 require_once __DIR__ . '/../../app/services/UserService.php';
 
-use helpers\JsonResponse;
 use models\User;
 use PHPUnit\Framework\TestCase;
 use services\UserService;
 
 class UserServiceTest extends TestCase
 {
-    public function testCreateUserCallsModel(): void
+    protected function setUp(): void
     {
-        $userMock = $this->createMock(User::class);
+        $this->userMock = $this->createMock(User::class);
 
-        $userMock->expects($this->once())
+        $this->userMock->method('createUser')
+            ->willReturn(true);
+
+        $this->userService = new UserService($this->userMock);
+    }
+
+    public function testCreateUserModel(): void
+    {
+        $this->userMock->expects($this->once())
             ->method('createUser')
-            ->willReturn(new JsonResponse(['success' => true]));
+            ->with($this->callback(function ($data) {
+                return isset($data['first_name'], $data['last_name'], $data['email']);
+            }));
 
-        $service = new UserService($userMock);
-        $response = $service->create(['first_name' => 'John', 'email' => 'john@example.com']);
+        $response = $this->userService->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
+            'mobile_number' => '0123456789',
+            'address' => '123 Some Street',
+            'city' => 'Some City',
+            'state' => 'CA',
+            'zip' => '12345',
+        ]);
 
         $this->assertTrue($response->toArray()['success']);
     }

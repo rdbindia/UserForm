@@ -30,24 +30,23 @@ class User
     /**
      * @throws Exception
      */
-    public function update(array &$data): void
+    public function update(array $data): void
     {
-        $userId = $data['id'] ?? null;
-        $userResponse = $this->userService->getUserById($userId);
-        $userData = json_decode($userResponse->toJson(), true)['data'] ?? [];
-
-        if (!$userData || !$userId) {
-            http_response_code(404);
-            $data['message'] = 'User not found.';
-            require __DIR__ . '/../views/error.php';
-            return;
-        }
+        $id = $data['id'] ?? null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $userResponse = $this->userService->getUserById($id);
+            $userData = json_decode($userResponse->toJson(), true)['data'] ?? [];
+
+            if (!$userData) {
+                http_response_code(404);
+                require __DIR__ . '/../views/error.php';
+                return;
+            }
+
             $this->renderForm($userData);
         } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $response = $this->userService->update($userId, $data);
-            echo $response->toJson();
+            echo $this->userService->update($id, $data)->toJson();
         }
     }
 

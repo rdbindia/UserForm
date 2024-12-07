@@ -29,6 +29,13 @@ class UserTest extends TestCase
 
     public function testCreateUser(): void
     {
+        $this->pdoMock = $this->createMock(PDO::class);
+
+        $stmtMock = $this->createMock(\PDOStatement::class);
+        $stmtMock->method('execute')->willReturn(true);
+
+        $this->pdoMock->method('prepare')->willReturn($stmtMock);
+
         $user = new User($this->pdoMock);
 
         $data = [
@@ -42,8 +49,9 @@ class UserTest extends TestCase
             'zip' => '10001'
         ];
 
-        $response = $user->createUser($data);
-        $this->assertTrue($response->toArray()['success']);
+        $result = $user->createUser($data);
+
+        $this->assertTrue($result);
     }
 
 }
