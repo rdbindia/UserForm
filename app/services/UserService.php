@@ -2,31 +2,54 @@
 
 namespace services;
 
+require_once __DIR__ . '/UserServiceInterface.php';
+
+use helpers\JsonResponse;
+use models\User as UserModel;
+
 class UserService implements UserServiceInterface
 {
 
-    public function __construct()
+    public function __construct(public readonly UserModel $userModel)
     {
 
     }
 
-    public function create(array $data): void
+    public function create(array $data): JsonResponse
     {
-        // TODO: Implement create() method.
+        try {
+            $this->userModel->setProperties($data);
+            $this->userModel->validate();
+
+            return $this->userModel->createUser($data);
+        } catch (\Exception $e) {
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 400);
+        }
     }
 
-    public function read(int $id): array
+    public function update(int $id, array $data): JsonResponse
     {
-        // TODO: Implement read() method.
+        try {
+            $this->userModel->setProperties($data);
+            $this->userModel->validate();
+
+            return $this->userModel->updateUser($id, $data);
+        } catch (\Exception $e) {
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 400);
+        }    }
+
+    public function delete(int $id): JsonResponse
+    {
+        return $this->userModel->deleteUser($id);
     }
 
-    public function update(int $id, array $data): void
+    public function getUserById(int $id): JsonResponse
     {
-        // TODO: Implement update() method.
+        return $this->userModel->getUserById($id);
     }
 
-    public function delete(int $id): void
+    public function getAllUsers(): JsonResponse
     {
-        // TODO: Implement delete() method.
+        return $this->userModel->getAllUsers();
     }
 }

@@ -4,7 +4,6 @@ $pdo = require_once __DIR__ . '/../config/config.php';
 
 if (!$pdo instanceof PDO) {
     echo "Error: PDO object not initialized in run_migrations.php\n";
-    var_dump($pdo);
     exit(1);
 }
 

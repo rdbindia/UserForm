@@ -24,4 +24,12 @@ class JsonResponse
         ];
         return json_encode(array_merge($response, $this->data));
     }
+    public function toArray(): array
+    {
+        $response = [
+            'status' => $this->status,
+            'success' => $this->status >= 200 && $this->status < 300,
+        ];
+        return array_merge($response, $this->data);
+    }
 }

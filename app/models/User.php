@@ -13,7 +13,8 @@ class User
 {
     private array $properties = [
         'id' => null,
-        'name' => null,
+        'first_name' => null,
+        'last_name' => null,
         'email' => null,
         'mobile_number' => null,
         'address' => null,
@@ -38,11 +39,13 @@ class User
             $this->validate();
 
             $stmt = $this->pdo->prepare("
-            INSERT INTO users (name, email, mobile_number, address, city, state, zip)
-            VALUES (:name, :email, :mobile_number, :address, :city, :state, :zip)
+            INSERT INTO users (first_name,last_name, email, mobile_number, address, city, state, zip)
+            VALUES (:first_name,:last_name, :email, :mobile_number, :address, :city, :state, :zip)
         ");
+
             $stmt->execute([
-                ':name' => $data['name'],
+                ':first_name' => $data['first_name'],
+                ':last_name' => $data['last_name'],
                 ':email' => $data['email'],
                 ':mobile_number' => $data['mobile_number'] ?? null,
                 ':address' => $data['address'] ?? null,
@@ -72,7 +75,7 @@ class User
             return JsonResponse::response(['success' => true, 'data' => $this->toArray()]);
 
         } catch (Exception $e) {
-            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()]);
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -87,14 +90,15 @@ class User
 
             $stmt = $this->pdo->prepare("
                 UPDATE users
-                SET name = :name, email = :email, mobile_number = :mobile_number,
+                SET first_name = :first_name,last_name = :last_name, email = :email, mobile_number = :mobile_number,
                     address = :address, city = :city, state = :state, zip = :zip
                 WHERE id = :id
             ");
 
             $stmt->execute([
                 ':id' => $id,
-                ':name' => $data['name'],
+                ':first_name' => $data['first_name'],
+                ':last_name' => $data['last_name'],
                 ':email' => $data['email'],
                 ':mobile_number' => $data['mobile_number'] ?? null,
                 ':address' => $data['address'] ?? null,
@@ -109,6 +113,7 @@ class User
             return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 400);
         }
     }
+
     public function deleteUser(int $id): JsonResponse
     {
         try {
@@ -116,12 +121,12 @@ class User
             $stmt->execute([':id' => $id]);
 
             if ($stmt->rowCount() === 0) {
-                return JsonResponse::response(['success' => false,'message' => 'User not found.']);
+                return JsonResponse::response(['success' => false, 'message' => 'User not found.']);
             }
 
-            return JsonResponse::response(['success' => true,'message' => 'User deleted successfully.']);
+            return JsonResponse::response(['success' => true, 'message' => 'User deleted successfully.']);
         } catch (Exception $e) {
-            return JsonResponse::response(['success' => false,'error' => $e->getMessage()]);
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 
@@ -151,17 +156,45 @@ class User
         }
     }
 
+    public function getAllUsers(): JsonResponse
+    {
+        try {
+            $stmt = $this->pdo->query("SELECT * FROM users");
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return JsonResponse::response(['success' => true, 'data' => $users]);
+        } catch (PDOException $e) {
+            return JsonResponse::response(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
     /**
      * @throws Exception
      */
     public function validate(): void
     {
-        if (empty($this->properties['name'])) {
-            throw new Exception("Name is required.");
+        if (empty($this->properties['first_name'])) {
+            throw new Exception("First Name is required.");
+        }
+
+        if (empty($this->properties['last_name'])) {
+            throw new Exception("Last Name is required.");
         }
 
         if (!filter_var($this->properties['email'], FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Invalid email address.");
+        }
+
+        if (!is_null($this->properties['mobile_number']) && !preg_match('/^\d{10}$/', $this->properties['mobile_number'])) {
+            throw new Exception("Mobile Number must be exactly 10 digits.");
+        }
+
+        if (!is_null($this->properties['address']) && strlen($this->properties['address']) > 255) {
+            throw new Exception("Address must not exceed 255 characters.");
+        }
+
+        if ($this->properties['city'] && strlen($this->properties['address']) > 128) {
+            throw new Exception("Invalid city.");
         }
 
         if (!is_null($this->properties['state']) && strlen($this->properties['state']) !== 2) {
